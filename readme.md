@@ -1,5 +1,7 @@
 # TP0 asynchronus server technologie
 
+[![Build Status](https://travis-ci.org/Bencal78/asynchronus_server_tech.svg?branch=master)](https://travis-ci.org/Bencal78/asynchronus_server_tech)
+
 Benjamin Callonnec.
 
 Introduction:
