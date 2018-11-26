@@ -7,7 +7,7 @@ var path = require('path');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-var users = require('./lib/user/route');
+var users = require('./src/user/route');
 app.use('/hello', users);
 
 module.exports = app;

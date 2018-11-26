@@ -4,9 +4,11 @@
   "description": "tp and project made in class",
   "main": "index.js",
   "scripts": {
-    "start": "node ./bin/www",
-    "test": "mocha test -u bdd -R spec",
-    "build": "coffee --compile --output lib/ src/"
+    "start": "./node_modules/.bin/ts-node src/server.ts",
+    "dev": "./node_modules/.bin/nodemon ",
+    "test": "./node_modules/.bin/mocha -r ts-node/register src/**/*.test.ts",
+    "build": "./node_modules/.bin/tsc -p tsconfig.json",
+    "populate": "./node_modules/.bin/ts-node bin/populate.ts"
   },
   "author": "benjamin callonnec",
   "license": "ISC",
@@ -17,6 +19,17 @@
     "http": "0.0.0",
     "mocha": "^5.2.0",
     "mongoose": "^5.3.12",
-    "socket.io": "^2.1.1"
+    "nodemon": "^1.18.6",
+    "should": "^13.2.3",
+    "socket.io": "^2.1.1",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.1.6"
+  },
+  "devDependencies": {
+    "@types/express": "^4.16.0",
+    "@types/levelup": "^3.1.0",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.12.9",
+    "@types/should": "^13.0.0"
   }
 }
