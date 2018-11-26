@@ -12,7 +12,7 @@ export class Metric {
 }
 
 export class MetricsHandler {
-  private db: any;
+  public db: any;
 
   constructor(path: string) {
     this.db = LevelDb.open(path);

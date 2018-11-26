@@ -5,7 +5,7 @@ import bodyparser = require("body-parser");
 const app = express();
 const port: string = process.env.PORT || "8080";
 
-const dbMet = new MetricsHandler("./db");
+const dbMet: MetricsHandler= new MetricsHandler("./db/metrics");
 
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded());
