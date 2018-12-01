@@ -27,9 +27,12 @@ describe('Metrics', function () {
   })
 
   describe('#save', function() {
-    //const metrics: Metric[] = [new Metric(...)]
-    it('should save data', function(){
+    const metrics: Metric[] = [new Metric(new Date().getTime(), 3), new Metric(new Date().getTime(), 4)]
 
+    it('should save data', function(){
+      dbMet.save(1, "", metrics, function(err: Error | null) {
+        expect(err).to.be.null
+      })
     })
     it('should update data', function(){
       //save
@@ -40,10 +43,14 @@ describe('Metrics', function () {
 
   describe('#delete', function() {
     it('should delete data', function(){
-
+      dbMet.delete(1, "", function(err: Error | null) {
+        expect(err).to.be.null
+      })
     })
     it('should not failed if data does not exist', function(){
-
+      dbMet.delete(2, "francois", function(err: Error | null) {
+        expect(err).to.be.null
+      })
     })
   })
 })

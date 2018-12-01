@@ -18,27 +18,71 @@ export class MetricsHandler {
     this.db = LevelDb.open(path);
   }
 
-  public save(
-    key: string,
-    met: Metric[],
-    callback: (error: Error | null) => void
-  ) {
-    const stream = WriteStream(this.db);
+  // public save(key: string, met: Metric[], callback: (error: Error | null) => void) {
+  //   const stream = WriteStream(this.db);
+  //
+  //   stream.on("error", callback);
+  //   stream.on("close", callback);
+  //
+  //   met.forEach(m => {
+  //     stream.write({ key: `metric:${key}:${m.timestamp}:`, value: m.value });
+  //   });
+  //
+  //   stream.end();
+  // }
 
-    stream.on("error", callback);
-    stream.on("close", callback);
+  // public get(key: string, callback: (err: Error | null, result?: Metric[]) => void) {
+  //   const stream = this.db.createReadStream();
+  //   var met: Metric[] = [];
+  //
+  //   stream
+  //     .on("error", callback)
+  //     .on("end", (err: Error) => {
+  //       callback(null, met);
+  //     })
+  //     .on("data", (data: any) => {
+  //       const [, k, timestamp,] = data.key.split(":");
+  //       const value = data.value;
+  //       if (key != k) {
+  //         console.log(`Level DB error: ${data} does not match key ${key}`);
+  //       }
+  //       else {
+  //         met.push(new Metric(timestamp, value));
+  //       }
+  //
+  //     });
+  // }
 
-    met.forEach(m => {
-      stream.write({ key: `metric:${key}${m.timestamp}`, value: m.value });
-    });
+  // public delete(key: string, met: Metric[], callback: (error: Error | null, result?: Metric[]) => void) {
+  //   const stream = this.db.createReadStream();
+  //   var met: Metric[] = [];
+  //
+  //   stream
+  //     .on("error", callback)
+  //     .on("end", (err: Error) => {
+  //       callback(null, met);
+  //     })
+  //     .on("data", (data: any) => {
+  //       const [, k, timestamp,] = data.key.split(":");
+  //       const value = data.value;
+  //       if (key != k) {
+  //         console.log(`Level DB error: ${data} does not match key ${key}`);
+  //       }
+  //       else {
+  //         met.splice( met.indexOf(new Metric(timestamp, value)), 1 );
+  //         this.db.del(data.key)
+  //       }
+  //
+  //     });
+  // }
 
-    stream.end();
-  }
-
-  public get(
-    key: string,
-    callback: (err: Error | null, result?: Metric[]) => void
-  ) {
+  //Retrive metrics
+  /*
+  params: key default value null
+          username default value null
+  */
+  //default value permit to get all metrics from user if key not specify
+  public get(key: string = "", username: string = "", callback: (error: Error | null, result?: Metric[]) => void) {
     const stream = this.db.createReadStream();
     var met: Metric[] = [];
 
@@ -48,12 +92,50 @@ export class MetricsHandler {
         callback(null, met);
       })
       .on("data", (data: any) => {
-        const [, k, timestamp] = data.key.split(":");
+        const [, k, timestamp, u] = data.key.split(":");
         const value = data.value;
-        if (key != k) {
+        if ((key != "" && key != k) || (username != "" && username != u)) {
           console.log(`Level DB error: ${data} does not match key ${key}`);
         }
-        met.push(new Metric(timestamp, value));
+        else {
+          met.push(new Metric(timestamp, value));
+        }
+      });
+  }
+
+  public save(key: string = "", username: string = "", met: Metric[], callback: (error: Error | null) => void) {
+    const stream = WriteStream(this.db);
+
+    stream.on("error", callback);
+    stream.on("close", callback);
+
+    met.forEach(m => {
+      stream.write({ key: `metric:${key}:${m.timestamp}:${username}`, value: m.value });
+    });
+
+    stream.end();
+  }
+
+  public delete(key: string = "", username: string = "", callback: (error: Error | null, result?: Metric[]) => void) {
+    const stream = this.db.createReadStream();
+    var met: Metric[] = [];
+
+    stream
+      .on("error", callback)
+      .on("end", (err: Error) => {
+        callback(null, met);
+      })
+      .on("data", (data: any) => {
+        const [, k, timestamp, u] = data.key.split(":");
+        const value = data.value;
+        if ((key != "" && key != k) || (username != "" && username != u)) {
+          console.log(`Level DB error: ${data} does not match key ${key}`);
+        }
+        else {
+          met.splice(met.indexOf(new Metric(timestamp, value)), 1 );
+          this.db.del(data.key)
+        }
+
       });
   }
 }
