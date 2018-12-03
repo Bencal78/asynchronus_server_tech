@@ -14,8 +14,8 @@ export class Metric {
 export class MetricsHandler {
   public db: any;
 
-  constructor(path: string) {
-    this.db = LevelDb.open(path);
+  constructor(db: any) {
+    this.db = db;
   }
 
   // public save(key: string, met: Metric[], callback: (error: Error | null) => void) {
@@ -92,6 +92,7 @@ export class MetricsHandler {
         callback(null, met);
       })
       .on("data", (data: any) => {
+        console.log("data :", data)
         const [, k, timestamp, u] = data.key.split(":");
         const value = data.value;
         if ((key != "" && key != k) || (username != "" && username != u)) {
@@ -105,6 +106,7 @@ export class MetricsHandler {
 
   public save(key: string = "", username: string = "", met: Metric[], callback: (error: Error | null) => void) {
     const stream = WriteStream(this.db);
+    console.log("met :", met)
 
     stream.on("error", callback);
     stream.on("close", callback);
