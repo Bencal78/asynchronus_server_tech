@@ -5,8 +5,8 @@ import WriteStream from 'level-ws'
 export class UserHandler {
   public db: any
 
-  constructor(path: string) {
-    this.db = LevelDb.open(path)
+  constructor(db: any) {
+    this.db = db
   }
 
   public get(username: string, callback: (err: Error | null, result?: User) => void) {

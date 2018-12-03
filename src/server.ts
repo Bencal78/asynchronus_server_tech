@@ -5,16 +5,22 @@ import morgan = require('morgan')
 import session = require('express-session')
 import levelSession = require('level-session-store')
 import { UserHandler, User } from './user'
+import { LevelDb } from "./leveldb";
 import path = require('path')
 
-const dbUser: UserHandler = new UserHandler('./db/users')
+const dbPath: string = './db_test'
+const db = LevelDb.open(dbPath);
+
+const dbUser: UserHandler = new UserHandler(db)
 
 const app = express();
 const port: string = process.env.PORT || "8080";
 
-const dbMet: MetricsHandler= new MetricsHandler("./db/metrics");
+const dbMet: MetricsHandler= new MetricsHandler(db);
 
 const LevelStore = levelSession(session)
+
+
 
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded());
@@ -159,40 +165,47 @@ app.get("/", authCheck, (req: any, res: any) => {
 */
 
 const metricsRouter = express.Router();
-metricsRouter.use(function(req: any, res: any, next: any) {
-  console.log("called metrics router");
-  next();
-});
+// metricsRouter.use(function(req: any, res: any, next: any) {
+//   console.log("called metrics router");
+//   next();
+// });
 
+// send query as parameter for id because id can be unspecified
 metricsRouter.get("/", (req: any, res: any, next: any) => {
   console.log("params :", req.params)
   console.log("query :", req.query)
   console.log("body :", req.body)
-  let username = req.query.username? req.query.username : "";
+  console.log("req session", req.session.user)
+  let username = req.session.user.username
   let id = req.query.id? req.query.id : "";
-  if (req.session.user.username === req.query.username) {
-    dbMet.get(id, username, (err: Error | null, result?: Metric[]) => {
-        if (err) next(err);
-        if (result === undefined) {
-          res.write("no result");
-          res.send();
-        } else res.json(result);
-      }
-    );
-  } else {
-    res
-      .status(401)
-      .send("Vous n'avez pas l'autorisation de lire les metrics d'autrui !");
-  }
+  dbMet.get(id, username, (err: Error | null, result?: Metric[]) => {
+      if (err) next(err);
+      if (result === undefined) {
+        res.write("no result");
+        res.send();
+      } else res.json(result);
+    }
+  );
 });
 
 metricsRouter.post('/', (req: any, res: any, next: any) => {
-  let username = req.query.username? req.query.username : "";
-  let id = req.query.id? req.query.id : "";
-  dbMet.save(id, username, req.body, (err: Error | null) => {
+  let username = req.session.user.username;
+  let id = Number(Math.random() * 1000).toString();
+  // id = Number(id);
+  // let id1 = id.toString()
+  console.log("body :", req.body)
+  let data = req.body
+  if(!Array.isArray(req.body)){
+    data = [{
+      "timestamp": new Date(req.body.date).getTime().toString(),
+      "value": req.body.value
+    }]
+  }
+  dbMet.save(id, username, data, (err: Error | null) => {
     if(err) next(err)
     res.status(200).send()
   })
+  res.redirect('/')
 });
 
 metricsRouter.delete("/", function(req: any, res: any, next: any) {
