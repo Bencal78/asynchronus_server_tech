@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <% include partials/head %>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<style> /* set the CSS */
+
+th, td {
+    border: 1px solid;
+}
+th {
+    font-weight : bold
+}
+
+</style>
+
+<body class="container">
+  <div class="col-md-12">
+    <h1>Hello
+      <%= name %>
+    </h1>
+    <h2>
+      Leave field empty if you want to delete the metric
+    </h2>
+    <h3>
+      Note : If both fields are not fulfill the metric will be deleted
+    </h3>
+    <label class="col-md-6">
+      <button class="btn btn-danger btn-block" href="/" onClick='document.location.href="/"'>
+        Back to metrics
+      </button>
+    </label>
+    <label class="col-md-6">
+      <button class="btn btn-primary btn-block" type="button" value="Submit" onclick="sendData()" href="/">Submit form</button>
+    </label>
+  </div>
+</body>
+
+
+<script>
+var _table_ = document.createElement('table'),
+    _tr_ = document.createElement('tr'),
+    _th_ = document.createElement('th'),
+    _td_ = document.createElement('td'),
+    _input_ = document.createElement('input');
+
+function sendData() {
+  var XHR = new XMLHttpRequest();
+  var urlEncodedData = "";
+  var urlEncodedDataPairs = [];
+  var name;
+
+  var data = [];
+  var i = 0;
+  $(".input").each(function() {
+    if(i % 2 == 0){
+      var date = $(this).val() === ""? $(this).val() : new Date($(this).val()).valueOf();
+      data.push({timestamp: date, value: ""});
+    }
+    else {
+      data[data.length -1].value = $(this).val();
+    }
+    i = i+1;
+  });
+  data = JSON.stringify(data);
+  console.log("data :", data);
+
+  // Transformez l'objet data en un tableau de paires clé/valeur codées URL.
+  // for(name in data) {
+  //   urlEncodedDataPairs.push(encodeURIComponent(name) + '=' + encodeURIComponent(data[name]));
+  // }
+
+  // Combinez les paires en une seule chaîne de caractères et remplacez tous
+  // les espaces codés en % par le caractère'+' ; cela correspond au comportement
+  // des soumissions de formulaires de navigateur.
+  //urlEncodedData = urlEncodedDataPairs.join('&').replace(/%20/g, '+');
+
+  // Définissez ce qui se passe en cas de succès de soumission de données
+  XHR.addEventListener('load', function(event) {
+    //alert('Ouais ! Données envoyées et réponse chargée.');
+  });
+
+  // Définissez ce qui arrive en cas d'erreur
+  XHR.addEventListener('error', function(event) {
+    //alert('Oups! Quelque chose s\'est mal passé.');
+  });
+
+  // Configurez la requête
+  XHR.open('POST', 'http://localhost:8080/metrics/update');
+
+  // Ajoutez l'en-tête HTTP requise pour requêtes POST de données de formulaire
+  XHR.setRequestHeader('Content-Type', 'application/json');
+
+  // Finalement, envoyez les données.
+  XHR.send(data);
+
+  document.location.href="/"
+}
+
+// Builds the HTML Table out of myList json data from Ivy restful service.
+ function buildHtmlTable(arr) {
+     var table = _table_.cloneNode(false),
+         columns = addAllColumnHeaders(arr, table);
+    var tempDate;
+    var date = new Date();
+    var inputs = []
+     for (var i=0, maxi=arr.length; i < maxi; ++i) {
+         var tr = _tr_.cloneNode(false);
+         for (var j=0, maxj=columns.length; j < maxj ; ++j) {
+           var td = _td_.cloneNode(false);
+           var input = _input_.cloneNode(false);
+           if(j == 0){
+             if(!isNaN(arr[i][columns[j]])){
+               date = new Date().setTime(arr[i][columns[j]]);
+               date = new Date(date);
+               cellValue = date.toLocaleString('en-GB', { timeZone: 'UTC' }).slice(0, 10);
+               tempDate = cellValue.split('/');
+               cellValue = tempDate[2]+'-'+tempDate[1]+'-'+tempDate[0];
+             }
+             else {
+               cellValue = "";
+             }
+             input.type = "date";
+             input.value = cellValue;
+           }
+           else {
+             cellValue = arr[i][columns[j]];
+             input.type = "number";
+             input.value = cellValue;
+           }
+           input.className = "input";
+           //input.appendChild(document.createTextNode(cellValue || ''));
+           inputs.push(input);
+           td.appendChild(input);
+           tr.appendChild(td);
+         }
+         table.appendChild(tr);
+     }
+     return table;
+ }
+
+ // Adds a header row to the table and returns the set of columns.
+ // Need to do union of keys from all records as some records may not contain
+ // all records
+ function addAllColumnHeaders(arr, table)
+ {
+     var columnSet = [],
+         tr = _tr_.cloneNode(false);
+     for (var i=0, l=arr.length; i < l; i++) {
+         for (var key in arr[i]) {
+             if (arr[i].hasOwnProperty(key) && columnSet.indexOf(key)===-1) {
+                 columnSet.push(key);
+                 var th = _th_.cloneNode(false);
+                 th.appendChild(document.createTextNode(key));
+                 tr.appendChild(th);
+             }
+         }
+     }
+     table.appendChild(tr);
+     return columnSet;
+ }
+
+ $.getJSON('/metrics', {}, (data) => {
+   form = document.getElementById("form_update");
+   //form.appendChild(buildHtmlTable(data));
+   document.body.appendChild(buildHtmlTable(data));
+ })
+
+</script>
+</html>

@@ -13,6 +13,7 @@
   "author": "benjamin callonnec",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.18.0",
     "bcrypt-nodejs": "0.0.3",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
@@ -28,7 +29,9 @@
     "level-ws": "^1.0.0",
     "leveldown": "^4.0.1",
     "levelup": "^3.1.1",
-    "morgan": "^1.9.1"
+    "morgan": "^1.9.1",
+    "plotly": "^1.0.6",
+    "request": "^2.88.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",

@@ -20,17 +20,43 @@ export class UserHandler {
   public save(user: any, callback: (err: Error | null) => void) {
     // TODO
     user = new User(user.username, user.email, user.password)
-    console.log("password sign in:", user.getPassword())
     this.db.put(`user:${user.username}`, `${user.getPassword()}: ${user.email}`, (err: Error | null) => {
       callback(err)
     })
   }
 
+  public update(old_user: any, new_user: any,  callback: (err: Error | null, result?: User) => void) {
+    const stream = this.db.createReadStream();
+
+    stream
+      .on("error", callback)
+      .on("end", (err: Error) => {
+        callback(null);
+      })
+      .on("data", (data: any) => {
+        const [, u] = data.key.split(":");
+        if (old_user != "" && old_user != u) {
+          console.log(`Level DB error: ${data}`);
+        }
+        else {
+          this.db.del(data.key)
+          const stream_save = WriteStream(this.db);
+          let user = new User(new_user.username, new_user.email, new_user.password)
+
+          stream_save.on("error", callback);
+          stream_save.on("close", callback);
+
+          stream_save.write({ key: `user:${user.username}`, value: `${user.getPassword()}: ${user.email}` });
+
+          stream_save.end();
+        }
+      });
+  }
+
   public delete(username: string, callback: (err: Error | null) => void) {
     this.db.del(`user:${username}`, (err: Error | null) => {
         callback(err);
-      }
-    );
+      });
   }
 }
 
@@ -56,7 +82,6 @@ export class User {
 
   public setPassword(toSet: string): void {
     // Hash and set password
-    console.log("to set :", toSet)
     this.password = bcrypt.hashSync(toSet, '$2a$10$nidzfv0TvesHSgSF3IKxle')
   }
 
@@ -71,11 +96,7 @@ export class User {
   public async validatePassword(toValidate: String) {
     // return comparison with hashed password
     let password = bcrypt.hashSync("benjamin", '$2a$10$nidzfv0TvesHSgSF3IKxle')
-    console.log("to validate :", toValidate)
-    console.log("this password :", this.password)
-    console.log("password :", password)
     const match = bcrypt.compareSync(toValidate, this.password);
-    console.log("here :", match)
     return match
   }
 

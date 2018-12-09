@@ -3,57 +3,17 @@
 
 <head>
   <% include partials/head %>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 
 <style> /* set the CSS */
 
-  svg {
-  font: 10px sans-serif;
-  }
 
-  .y.axis path {
-  display: none;
-  }
-
-  .y.axis line {
-  stroke: #fff;
-  stroke-opacity: .2;
-  shape-rendering: crispEdges;
-  }
-
-  .y.axis .zero line {
-  stroke: #000;
-  stroke-opacity: 1;
-  }
-
-  .title {
-  font: 300 78px Helvetica Neue;
-  fill: #666;
-  }
-
-  .birthyear,
-  .age {
-  text-anchor: middle;
-  }
-
-  .birthyear {
-  fill: #fff;
-  }
-
-  rect {
-  fill-opacity: .6;
-  fill: #e377c2;
-  }
-
-  rect:first-child {
-  fill: #1f77b4;
-  }
 
 </style>
 
 <body class="container">
-  <script src="http://d3js.org/d3.v3.min.js"></script>
-  <div class="col-md-4">
+  <div class="col-md-12">
     <h1>Hello
       <%= name %>
     </h1>
@@ -63,104 +23,74 @@
     <button class="btn btn-danger" href="/logout" onClick='document.location.href="/logout"'>
       Logout
     </button>
+    <button class="btn btn-primary" href="/update_metrics" onClick='document.location.href="/update_metrics"'>
+      Update  metrics
+    </button>
     <form action="/metrics" method="post">
       <div class="form-group">
         <label for="form_date">Date</label>
-        <input id="form_date" type="date" name="date" />
+        <input id="form_date" type="date" name="date"/>
       </div>
       <div class="form-group">
         <label for="form_value">Value</label>
-        <input id="form_value" type="number" name="value" />
+        <input id="form_value" type="number" name="value"/>
       </div>
-      <button class="btn btn-primary btn-block" type="submit" value="Submit">Add metrics</button>
+      <button class="btn btn-primary" type="submit" value="Submit">Add metrics</button>
     </form>
     <div id="metrics"></div>
   </div>
 </body>
 
-<!-- <script>
-  $('#show-metrics').click((e) => {
-    e.preventDefault()
-    $.getJSON('/metrics', {}, (data) => {
-      const content = data.map(d => {
-        return `<p>timestamp: ${d.timestamp}, value: ${d.value}</p>`
-      })
-      $("#metrics").append(content.join("\n"))
-    })
-  })
-</script> -->
 
 <script>
-// Set the dimensions of the canvas / graph
-var margin = {top: 30, right: 20, bottom: 30, left: 50},
-    width = 600 - margin.left - margin.right,
-    height = 270 - margin.top - margin.bottom;
-
-// Parse the date / time
-var parseDate = d3.time.format("%d-%b-%y").parse;
-
-// Set the ranges
-var x = d3.time.scale().range([0, width]);
-var y = d3.scale.linear().range([height, 0]);
-
-// Define the axes
-var xAxis = d3.svg.axis().scale(x)
-    .orient("bottom").ticks(5);
-
-var yAxis = d3.svg.axis().scale(y)
-    .orient("left").ticks(5);
-
-// Define the line
-var valueline = d3.svg.line()
-    .x(function(d) {
-      console.log("data here :", d.date.toISOString())
-      console.log("woulah :", new Date("2018-09-28").getTime())
-      return x(d.timestamp); })
-    .y(function(d) { return y(d.value); });
-
-// Adds the svg canvas
-var svg = d3.select("body")
-    .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-        .attr("transform",
-              "translate(" + margin.left + "," + margin.top + ")");
-
-// Get the data
 $('#show-metrics').click((e) => {
-  e.preventDefault()
-  d3.json("/metrics", function(error, data) {
-    console.log("data :", data)
-    data.map(function(d) {
-      d.date = new Date(d.timestamp * 1000);
-    })
-    // Update the scale domains.
-    // Scale the range of the data
-    //d3.extent(data, function(d) { return d.date; })
-    x.domain([d3.min(data, function(d) { return +d.timestamp; }), d3.max(data, function(d) { return +d.timestamp; })]);
-    y.domain([0, d3.max(data, function(d) { return d.value; })]);
+   e.preventDefault()
+   $.getJSON('/metrics', {}, (data) => {
+     // const content = data.map(d => {
+     //   return `<p>timestamp: ${d.timestamp}, value: ${d.value}</p>`
+     // })
+     var x = [];
+     var y = [];
+     var date = new Date();
+     data.forEach(d => {
+       date = new Date().setTime(d.timestamp);
+       date = new Date(date);
+       x.push(date.toLocaleString('en-GB', { timeZone: 'UTC' }));
+       y.push(d.value);
+     });
+     let arr = [];
+     for (var i = 0; i < x.length; i++) {
+        arr.push({date: x[i], value: y[i]});
+      }
+     arr = arr.sort((a,b) => {
+       a = a.date.slice(0,10);
+       b = b.date.slice(0,10);
+       a = a.split("/");
+       b = b.split("/");
+       return (a[2] >= b[2] && a[1] >= b[1] && a[0] >= b[0])? true : false;
+     });
 
-    // Add the valueline path.
-    svg.append("path")
-        .attr("class", "line")
-        .attr("d", valueline(data));
-
-    // Add the X Axis
-    svg.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis);
-
-    // Add the Y Axis
-    svg.append("g")
-        .attr("class", "y axis")
-        .call(yAxis);
-  });
-})
-
-
-
+     x=[]
+     y=[]
+     arr.forEach(a => {
+       x.push(a.date);
+       y.push(a.value);
+     })
+     //$("#metrics").append(content.join("\n"))
+     METRICS = document.getElementById('metrics');
+     var test = Plotly.plot( METRICS,
+       [{
+          x: x,
+          y: y,
+          type: "scatter"
+       }],
+       {
+         margin: { t: 0 }
+       });
+     //console.log( Plotly.BUILD );
+     $("#metrics").append(test)
+   })
+ })
 </script>
 
 </html>
