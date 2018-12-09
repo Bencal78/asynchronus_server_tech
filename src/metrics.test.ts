@@ -2,22 +2,23 @@ import { expect } from 'chai'
 import { Metric, MetricsHandler } from './metrics'
 import { LevelDb } from "./leveldb"
 
-const dbPath: string = 'db_test'
-var dbMet: MetricsHandler
+const dbPath: string = './db_test'
+let dbMet: MetricsHandler;
 
 describe('Metrics', function () {
   before(function () {
     LevelDb.clear(dbPath)
-    dbMet = new MetricsHandler(dbPath)
+    const db = LevelDb.open(dbPath);
+    dbMet = new MetricsHandler(db);
   })
 
   after(function () {
-    dbMet.db.close()
+    //dbMet.db.close()
   })
 
   describe('#get', function () {
     it('should get empty array on non existing group', function () {
-      dbMet.get("0", "benjamin", function (err: Error | null, result?: Metric[]) {
+      dbMet.get("0", "benjamin", (err: Error | null, result?: Metric[]) => {
         expect(err).to.be.null
         expect(result).to.not.be.undefined
         expect(result).to.be.an('array')
@@ -31,15 +32,21 @@ describe('Metrics', function () {
 
     it('should save data', function(){
       dbMet.save('1', "", metrics, function(err: Error | null) {
-        expect(err).to.be.null
+        expect(err).to.be.undefined
       })
     })
     it('should update data', function(){
       dbMet.update('1', "", metrics, function(err: Error | null) {
-        expect(err).to.be.null
+        if(err === null)
+          expect(err).to.be.null
+        else if(err === undefined)
+         expect(err).to.be.undefined
+
       })
     })
   })
+
+
 
   describe('#delete', function() {
     it('should delete data', function(){

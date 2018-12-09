@@ -75,7 +75,13 @@ export class MetricsHandler {
           console.log(`Level DB error: ${data} does not match key ${key}`);
         }
         else {
-          this.db.del(data.key)
+          try{
+            this.db.del(data.key)
+          }
+          catch(e){
+            console.log("errrrrooooor :", e);
+          }
+
         }
       });
 
