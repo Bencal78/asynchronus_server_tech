@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { User, UserHandler } from "./users";
+import { User, UserHandler } from "./user";
 import { LevelDb } from "./leveldb";
 
 const dbPath: string = "db_test/users";
@@ -39,6 +39,9 @@ describe("Users", function() {
 
     it("should update a User", function() {
       // TODO
+      dbUser.update("francois", user, (err: Error | null) => {
+        expect(err).to.be.null;
+      })
     });
   });
 
